@@ -1,0 +1,58 @@
+﻿@page "/players/detail/{id:int}"
+@using Application.Features.Players.Queries.GetPlayerById;
+@using MediatR
+@using Application.Features.Players.Commands;
+@using Application.Common.Entities;
+@inject IMediator Mediator
+@inject IJSRuntime JSRuntime
+
+
+@if (playerDto != null)
+{
+    <div class="row">
+        <div class="col-lg-9">
+            <h1>@playerDto.Name</h1>
+        </div>
+        <div class="col-lg-3 text-right">
+            <a class="btn btn-secondary btn-sm" href="/players" role="button">Go Back To List</a>
+        </div>
+    </div>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th scope="row">Shirt No</th>
+                <td>@playerDto.ShirtNo</td>
+            </tr>
+            <tr>
+                <th scope="row">Position</th>
+                <td>@playerDto.Position?.Name</td>
+            </tr>
+            <tr>
+                <th scope="row">Appearances</th>
+                <td>@playerDto.Appearances</td>
+            </tr>
+            <tr>
+                <th scope="row">Goals</th>
+                <td>@playerDto.Goals</td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private PlayerDto playerDto { get;  set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Normal service call
+        playerDto = await Mediator.Send(new GetPlayerByIdQuery() {Id = Id});
+    }
+
+
+
+}

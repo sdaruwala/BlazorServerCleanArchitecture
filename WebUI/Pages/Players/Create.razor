@@ -1,0 +1,90 @@
+﻿@page "/players/create"
+@using MediatR
+@using Application.Features.Players.Commands;
+@using Application.Common.Entities;
+@using Application.Features.Players.Queries.GetPositions;
+@inject IMediator Mediator
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<div class="row">
+    <div class="col-lg-9">
+        <h1>Create</h1>
+    </div>
+    <div class="col-lg-3 text-right">
+        <a class="btn btn-secondary btn-sm" href="/players" role="button">Go Back To List</a>
+    </div>
+</div>
+
+
+
+<EditForm Model="@playerDto" OnValidSubmit="@SubmitPlayer">
+        <div class="row col-md-6">
+        <div class="form-group">
+            <label>Shirt No</label>
+            <InputNumber class="form-control" @bind-Value="playerDto.ShirtNo" />
+        </div>
+        <div class="form-group">
+            <label>Name</label>
+            <InputText class="form-control" @bind-Value="playerDto.Name" />
+        </div>
+        <div class="form-group">
+            <label>Position</label>
+            <InputSelect @bind-Value="playerDto.PositionId" class="form-control">
+                @if (Positions != null)
+                {
+                    <option value="">Select</option>
+                    @foreach (var position in Positions)
+                    {                        
+                        <option value="@position.Id">@position.Name</option>
+                    }
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group">
+            <label>Appearances</label>
+            <InputNumber class="form-control" @bind-Value="playerDto.Appearances" />
+        </div>
+        <div class="form-group">
+            <label>Goals</label>
+            <InputNumber class="form-control" @bind-Value="playerDto.Goals" />
+        </div>
+        <button type="submit" class="btn btn-primary">Create </button>
+        </div>
+    </EditForm>
+
+
+@code {
+    private PlayerDto playerDto = new PlayerDto();
+    private List<PositionDto>? Positions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Normal service call  
+        Positions = await Mediator.Send(new GetPositionsQuery());
+    }
+
+    public async Task SubmitPlayer()
+    {
+        try
+        {
+            var cpc = new CreatePlayerCommand
+                {
+                    ShirtNo = playerDto.ShirtNo,
+                    Name = playerDto.Name,
+                    PositionId = playerDto.PositionId,
+                    Appearances = playerDto.Appearances,
+                    Goals =  playerDto.Goals
+                };
+
+            await Mediator.Send(cpc);
+
+            NavigationManager.NavigateTo("/players");
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+}
