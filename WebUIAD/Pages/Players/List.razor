@@ -1,0 +1,83 @@
+﻿@page "/players"
+@page "/players/list"
+@using Application.Features.Players.Queries.GetAllPlayers;
+@using MediatR
+@using Application.Features.Players.Commands;
+@using Application.Common.Entities;
+@inject IMediator Mediator
+@inject IJSRuntime JSRuntime
+
+
+<PageTitle>Players</PageTitle>
+<div class="row">
+    <div class="col-lg-9">
+        <h1>Players</h1>
+    </div>
+    <div class="col-lg-3 text-right">
+        <a class="btn btn-success btn-sm" href="/players/create" role="button">Create Player</a>
+    </div>
+</div>
+
+
+
+@if (players == null)
+{
+    <p><em>Loading...</em></p>
+}
+else 
+{
+    <table class="table table-bordered table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Shirt No</th>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Appearances</th>
+                <th>Goals</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var player in players)
+            {
+                <tr>
+                    <td>@player.ShirtNo</td>
+                    <td>@player.Name</td>
+                    <td>@player.Position?.Name</td>
+                    <td>@player.Appearances</td>
+                    <td>@player.Goals</td>
+                    <td class="text-right">
+                        <a class="btn btn-primary btn-sm" href="/players/detail/@player.Id" role="button">Details</a>
+                        <a class="btn btn-secondary btn-sm" href="/players/edit/@player.Id" role="button">Edit</a>
+                        <button class="btn btn-danger btn-sm" @onclick="@(e => DeletePlayer(player.Id))" role="button">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    private List<PlayerDto>? players;
+    protected override async Task OnInitializedAsync()
+    {
+        // Normal service call
+        players = await Mediator.Send(new GetAllPlayersQuery());        
+    }
+
+    public async Task DeletePlayer(int playerId)
+    {
+        try
+        {
+            await Mediator.Send(new DeletePlayerCommand() { Id = playerId });
+            await JSRuntime.InvokeVoidAsync("location.reload");
+        }
+        catch (Exception)
+        {            
+            throw;
+        }
+    }
+
+
+}
