@@ -1,14 +1,11 @@
-﻿using Application.Interfaces.Repositories;
+﻿using Application.Interfaces;
+using Application.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Persistence.Common;
 using Persistence.Contexts;
 using Persistence.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Persistence.Extensions
 {
@@ -19,12 +16,15 @@ namespace Persistence.Extensions
             //services.AddMappings();
             services.AddDbContext(configuration);
             services.AddRepositories();
+            services.AddFeatureFlags(configuration);
         }
 
         //private static void AddMappings(this IServiceCollection services)
         //{
         //    services.AddAutoMapper(Assembly.GetExecutingAssembly());
         //}
+
+
 
         public static void AddDbContext(this IServiceCollection services, IConfiguration configuration)
         {
@@ -41,6 +41,19 @@ namespace Persistence.Extensions
                 .AddTransient(typeof(IUnitOfWork), typeof(UnitOfWork))
                 .AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>))
                 .AddTransient<IStadiumRepository, StadiumRepository>();
+        }
+
+        private static void AddFeatureFlags(this IServiceCollection services, IConfiguration configuration)
+        {
+            var featureFlags = configuration.GetSection("FeatureFlags");
+
+            services.AddTransient<IFeatureFlags, FeatureManager>(provider =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                var featureManager = new FeatureManager(featureFlags);
+                return featureManager;
+            });
+
         }
     }
 }

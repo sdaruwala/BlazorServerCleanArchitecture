@@ -3,12 +3,17 @@ using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Persistence.Extensions;
 using Application.Extensions;
+using Microsoft.FeatureManagement;
+using Application.Interfaces;
+using Persistence.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+
+
 builder.Services.AddControllersWithViews()
     .AddMicrosoftIdentityUI();
 
@@ -23,6 +28,8 @@ builder.Services.AddServerSideBlazor()
     .AddMicrosoftIdentityConsentHandler();
 builder.Services.AddApplicationLayer();
 builder.Services.AddPersistenceLayer(builder.Configuration);
+
+builder.Services.AddFeatureManagement();
 
 builder.Services.AddScoped(sp => new HttpClient
 {

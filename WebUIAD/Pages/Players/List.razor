@@ -4,8 +4,12 @@
 @using MediatR
 @using Application.Features.Players.Commands;
 @using Application.Common.Entities;
+@using Application.Common.Enums;
+@using Persistence.Common;
+@using Application.Interfaces;
 @inject IMediator Mediator
 @inject IJSRuntime JSRuntime
+@inject IFeatureFlags Flags
 
 
 <PageTitle>Players</PageTitle>
@@ -14,7 +18,16 @@
         <h1>Players</h1>
     </div>
     <div class="col-lg-3 text-right">
-        <a class="btn btn-success btn-sm" href="/players/create" role="button">Create Player</a>
+        
+        @if(_featureFlags)
+        {
+            <a class="btn btn-success btn-sm" href="/players/create" role="button">Create Player</a>
+        }
+        else
+        {
+            <span>None</span>
+        }
+
     </div>
 </div>
 
@@ -60,10 +73,14 @@ else
 @code {
 
     private List<PlayerDto>? players;
+    private  bool _featureFlags;
     protected override async Task OnInitializedAsync()
     {
-        // Normal service call
-        players = await Mediator.Send(new GetAllPlayersQuery());        
+        // Normal service call      
+      
+        players = await Mediator.Send(new GetAllPlayersQuery());   
+        
+        _featureFlags = Flags.IsEnabled(FeatureFlags.Hide);
     }
 
     public async Task DeletePlayer(int playerId)
