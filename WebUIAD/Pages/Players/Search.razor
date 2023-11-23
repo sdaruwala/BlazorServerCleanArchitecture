@@ -1,0 +1,67 @@
+﻿@page "/players/search"
+@using WebUIAD.Services;
+@using Application.Common.Entities;
+@using Nest;
+@inject ElasticsearchService ElasticsearchService;
+
+<h3>Search</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<button @onclick="IndexDocument">Index Document</button>
+
+<input @bind="searchQuery" />
+<button @onclick="PerformSearch">Search</button>
+
+@if (searchResults != null)
+{
+    @if (searchResults.IsValid)
+    {
+        <ul>
+            @foreach (var result in searchResults.Hits)
+            {
+                <li>@result.Source.Name</li>
+                <li>@result.Source.Appearances</li>
+                <li>@result.Source.Goals</li>
+            }
+        </ul>
+    }
+    else
+    {
+        <div class="alert alert-danger">@searchResults.OriginalException.Message</div>
+    }
+}
+
+@code {
+    private string searchQuery;
+    private ISearchResponse<PlayerDto> searchResults;
+    private string errorMessage;
+
+    private async Task IndexDocument()
+    {
+        try
+        {
+            var document = new PlayerDto { Id = 1, Name = "Shabbir", PositionId = 1, Appearances = 1, Goals = 3 };
+            await ElasticsearchService.IndexDocumentAsync(document);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error indexing document: {ex.Message}";
+        }
+    }
+
+    private async Task PerformSearch()
+    {
+        try
+        {
+            searchResults = await ElasticsearchService.SearchAsync(searchQuery);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error searching documents: {ex.Message}";
+        }
+    }
+}

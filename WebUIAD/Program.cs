@@ -6,6 +6,9 @@ using Application.Extensions;
 using Microsoft.FeatureManagement;
 using Application.Interfaces;
 using Persistence.Common;
+using Nest;
+using WebUIAD.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +38,20 @@ builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri("https://localhost:7233")
 });
+
+
+//Elastic Search
+
+
+var elasticsearchConnectionSettings = new ConnectionSettings(new Uri("https://localhost:9200"))
+    .DefaultIndex("shabbir")
+    .ServerCertificateValidationCallback((sender, certificate, chain, errors) => true) // Disable certificate validation (for development only)
+    .BasicAuthentication("elastic", "Fc8+iJltbaFXfZKRRQGz");
+
+builder.Services.AddSingleton<IElasticClient>(provider => new ElasticClient(elasticsearchConnectionSettings));
+
+
+builder.Services.AddScoped<ElasticsearchService>();
 
 var app = builder.Build();
 
