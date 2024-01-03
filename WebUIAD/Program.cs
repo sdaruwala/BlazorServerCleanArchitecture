@@ -52,6 +52,7 @@ builder.Services.AddSingleton<IElasticClient>(provider => new ElasticClient(elas
 
 
 builder.Services.AddScoped<ElasticsearchService>();
+builder.Services.AddScoped<ImageService>();
 
 var app = builder.Build();
 

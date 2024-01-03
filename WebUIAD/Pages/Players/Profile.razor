@@ -1,0 +1,95 @@
+﻿@page "/players/profile"
+@using WebUIAD.Services
+@using Microsoft.AspNetCore.Components.Forms
+@inject ImageService imageService
+@inject IJSRuntime JSRuntime
+@attribute [AllowAnonymous]
+
+<h4>File Upload (Azure Blob Storage)</h4>
+<div class="row">
+    <div class="col-sm-2">
+
+        <label>
+            <InputFile class="form-control" OnChange="@OnInputFileChange"  single />
+        </label>
+
+    </div>
+    <div class="col-sm-1">
+        <button class="btn btn-primary" @onclick="() => OnUploadSubmit()">
+            Upload
+        </button>
+    </div>
+</div>
+
+@if(imageUri != null)
+{
+   
+    <img src="@imageUri" alt="Resized Image" />
+    <button class="btn btn-danger" @onclick="() => DeleteImage()">
+        Delete
+    </button>
+    
+}
+
+
+
+@code {
+   
+    private string imageUri;
+    private Stream selectedFileStream;
+    private string? fileNamePath;
+  
+
+    protected override async Task OnInitializedAsync()
+    {
+        var containerName = "webimages";
+        // var fileName = "a9c52570-1157-4c46-b812-35737657ae07.jpg";
+
+        // var imageStream = await imageService.DownloadImageAsync(containerName, fileName);
+        // using (var memoryStream = new MemoryStream())
+        // {
+        //     await imageStream.CopyToAsync(memoryStream);
+        //     byte[] bytes = memoryStream.ToArray();
+        //     imageUri = $"data:image/jpeg;base64,{Convert.ToBase64String(bytes)}";
+        // }
+
+    }
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)   {
+
+        selectedFileStream = e.File.OpenReadStream();
+        fileNamePath = e.File.Name;        
+        this.StateHasChanged();
+    }
+
+    private async Task OnUploadSubmit()
+    {
+        var containerName = "webimages";
+        var fileName = "messi" + Path.GetExtension(fileNamePath);
+        var maxWidth = 300; // Set your desired width
+        var maxHeight = 200; // Set your desired height
+
+        imageUri = await imageService.UploadAndResizeImageAsync(selectedFileStream, containerName, fileName, maxWidth, maxHeight);
+
+        await JSRuntime.InvokeVoidAsync("clearInputFile");
+      
+    }
+
+    private async Task DeleteImage()
+    {
+        var containerName = "webimages";
+        var fileName = "messi.jpg";
+        await imageService.DeleteImageAsync(containerName, fileName);
+        imageUri = null;       
+        this.StateHasChanged();
+    }
+
+}
+
+<script>
+    function clearInputFile() {
+        // Reset the value of the input file
+        var input = document.querySelector('input[type=file]');
+        input.value = '';
+    }
+</script>
